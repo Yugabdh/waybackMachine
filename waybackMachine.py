@@ -1,19 +1,43 @@
-import requests
-import sys
-import json
+#!/usr/bin/env python3
+import argparse
 
-class waybackMachineClass():
-
-        def __init__(self,domain):
-                self.waybackURL = "https://web.archive.org/cdx/search?url="+domain+"%2F&matchType=prefix&collapse=urlkey&output=json&fl=original%2Cmimetype%2Ctimestamp%2Cendtimestamp%2Cgroupcount%2Cuniqcount&filter=!statuscode%3A%5B45%5D..&limit=100000&_=1547318148315"
-                self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0'}
-        def getUrls(self):
-                r = requests.get(self.waybackURL,headers=self.headers)
-                html = r.text
-                jsonObj = json.loads(html)
-                return jsonObj
+from scripts.main import WayBackMachine
 
 
-wbm = waybackMachineClass(sys.argv[1])
-for row in wbm.getUrls():
-    print(row[0])
+if __name__ == '__main__':
+    wayback_parser = argparse.ArgumentParser(
+        description='List all the endpoints for given domain',
+        usage='python3 waybackMachine.py example.com'
+    )
+
+    wayback_parser.add_argument(
+        'domain_name',
+        type=str,
+        help='Domain name'
+    )
+
+    wayback_parser.add_argument(
+        '-f', '--fyear',
+        type=int,
+        metavar='',
+        help='Results from year'
+    )
+
+    wayback_parser.add_argument(
+        '-t', '--tyear',
+        type=int,
+        metavar='',
+        help='Results to year'
+    )
+
+    args = wayback_parser.parse_args()
+    wbm = WayBackMachine(
+        domain=args.domain_name,
+        start_year=args.fyear,
+        stop_year=args.tyear
+    )
+
+    url_list = wbm.get_urls()
+
+    for row in url_list[1:]:
+        print(row[0])
